@@ -1,9 +1,12 @@
 package provider
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
 
-	"github.com/go-resty/resty"
 	"github.com/juli3nk/go-email/types"
 )
 
@@ -24,16 +27,27 @@ func NewFakeMailProvider(config map[string]string) (Provider, error) {
 }
 
 func (p *FakeMailProvider) Send(req *types.SendRequest) error {
-	client := resty.New()
+	data, err := json.Marshal(req)
+        if err != nil {
+                return err
+        }
 
-	_, err := client.R().
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept", "application/json").
-		SetBody(req).
-		Post(fmt.Sprintf("%s/incoming", p.Config["url"]))
-	if err != nil {
-		return err
-	}
+        fakemailUrl := fmt.Sprintf("%s/incoming", p.Config["url"])
+        contentType := "application/json"
+
+        tr := &http.Transport{
+                IdleConnTimeout: 5 * time.Second,
+        }
+        client := &http.Client{Transport: tr}
+
+        response, err := client.Post(fakemailUrl, contentType, bytes.NewBuffer(data))
+        if err != nil {
+                return err
+        }
+
+        if response.StatusCode != 201 {
+                return fmt.Errorf("Please contact administrator if the problem persists")
+        }
 
 	return nil
 }
