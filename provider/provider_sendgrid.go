@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"github.com/juli3nk/go-email/types"
@@ -51,6 +52,18 @@ func (p *SendGridProvider) Send(req *types.SendRequest) error {
 
 	if len(req.From.ReplyTo) > 0 {
 		message.SetReplyTo(mail.NewEmail(req.From.Name, req.From.ReplyTo))
+	}
+
+	for _, a := range req.Attachments {
+		encoded := base64.StdEncoding.EncodeToString(a.Data)
+
+		ma := mail.NewAttachment()
+		ma.SetContent(encoded)
+		ma.SetFilename(a.Filename)
+		ma.SetType(a.ContentType)
+		ma.SetDisposition(a.Disposition)
+
+		message.AddAttachment(ma)
 	}
 
 	client := sendgrid.NewSendClient(p.Config["api-key"])

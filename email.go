@@ -71,6 +71,19 @@ func (c *Config) SetBody(bodyText, bodyHtml string) error {
 	return nil
 }
 
+func (c *Config) AddAttachment(data []byte, filename, contentType, disposition string) error {
+	attachment := types.Attachment{
+		Data:        data,
+		Filename:    filename,
+		ContentType: contentType,
+		Disposition: disposition,
+	}
+
+	c.request.Attachments = append(c.request.Attachments, &attachment)
+
+	return nil
+}
+
 func (c *Config) Send() error {
 	if len(c.request.From.Name) == 0 {
 		return fmt.Errorf("Sender name field is mandatory")

@@ -11,10 +11,18 @@ type Body struct {
 	Html string
 }
 
+type Attachment struct {
+	Data        []byte
+	Filename    string
+	ContentType string
+	Disposition string
+}
+
 type SendRequest struct {
 	From        *From
 	ToAddresses []string
 	CcAddresses []string
 	Subject     string
 	Body        *Body
+	Attachments []*Attachment
 }
