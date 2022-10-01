@@ -2,7 +2,6 @@ package template
 
 import (
 	"bytes"
-	"fmt"
 	templateH "html/template"
 	templateT "text/template"
 )
@@ -14,34 +13,20 @@ type Template struct {
 }
 
 type Config struct {
-	Templates map[string]map[string]*Template
+	Template *Template
 }
 
-func New() (*Config, error) {
+func New(msgTemplate *Template) (*Config, error) {
 	c := Config{
-		Templates: make(map[string]map[string]*Template),
+		Template: msgTemplate,
 	}
 
 	return &c, nil
 }
 
-func (c *Config) RegisterTemplate(name, language string, msgTemplate *Template) error {
-	if c.Templates[name] == nil {
-		c.Templates[name] = make(map[string]*Template)
-	}
-
-	if _, exist := c.Templates[name][language]; exist {
-		return fmt.Errorf("Language '%s' already exists for template name '%s'", language, name)
-	}
-
-	c.Templates[name][language] = msgTemplate
-
-	return nil
-}
-
-func (c *Config) GenerateTemplate(name, language string, dSubject, dBody map[string]string) (*Template, error) {
+func (c *Config) GenerateTemplate(dSubject, dBody map[string]string) (*Template, error) {
 	// Subject
-	tSubject := templateT.Must(templateT.New("emailSubject").Parse(c.Templates[name][language].Subject))
+	tSubject := templateT.Must(templateT.New("emailSubject").Parse(c.Template.Subject))
 
 	bufSubject := new(bytes.Buffer)
 
@@ -50,7 +35,7 @@ func (c *Config) GenerateTemplate(name, language string, dSubject, dBody map[str
 	}
 
 	// Body text
-	tBodyT := templateT.Must(templateT.New("emailBodyText").Parse(c.Templates[name][language].BodyText))
+	tBodyT := templateT.Must(templateT.New("emailBodyText").Parse(c.Template.BodyText))
 
 	bufBodyT := new(bytes.Buffer)
 
@@ -59,7 +44,7 @@ func (c *Config) GenerateTemplate(name, language string, dSubject, dBody map[str
 	}
 
 	// Body HTML
-	tBodyH := templateH.Must(templateH.New("emailBodyHtml").Parse(c.Templates[name][language].BodyHtml))
+	tBodyH := templateH.Must(templateH.New("emailBodyHtml").Parse(c.Template.BodyHtml))
 
 	bufBodyH := new(bytes.Buffer)
 
